@@ -23,6 +23,9 @@ public enum Physics {
     /// A dragged item starts to feel the pull inside this distance.
     public static func influenceRadius(_ radius: CGFloat) -> CGFloat { radius * 7 }
 
+    /// How far from the center an item flies when the hole throws it back out.
+    public static func ejectDistance(_ radius: CGFloat) -> CGFloat { radius * 4.4 }
+
     /// Pull strength: 0 at the influence radius and beyond, 1 at the center.
     public static func pull(distance: CGFloat, radius: CGFloat) -> CGFloat {
         clamp(1 - distance / influenceRadius(radius))

@@ -26,11 +26,16 @@ final class HorizonController {
     private var shownAutomationHelp = false
 
     private static let centerKey = "holeCenter"
-    private static let effectsSide = Physics.influenceRadius(Physics.maxRadius) * 2 + 60
+    /// Room for the hole and an ejected icon (48 pt) at the end of its flight.
+    /// The window backing store grows with the square of this side, so it follows the hole size.
+    private static func effectsSide(_ radius: CGFloat) -> CGFloat {
+        ((Physics.ejectDistance(radius) + 28) * 2).rounded(.up)
+    }
 
     init(menu: NSMenu) {
         self.menu = menu
-        holeView = HoleView(frame: CGRect(x: 0, y: 0, width: Self.effectsSide, height: Self.effectsSide))
+        let side = Self.effectsSide(Physics.baseRadius)
+        holeView = HoleView(frame: CGRect(x: 0, y: 0, width: side, height: side))
         center = Self.savedCenter() ?? Self.cornerCenter()
 
         effectsPanel.contentView = holeView
@@ -87,7 +92,7 @@ final class HorizonController {
     }
 
     private func layout() {
-        let side = Self.effectsSide
+        let side = Self.effectsSide(radius)
         effectsPanel.setFrame(CGRect(x: center.x - side / 2, y: center.y - side / 2, width: side, height: side), display: false)
         let capture = Physics.captureRadius(radius)
         targetPanel.setFrame(CGRect(x: center.x - capture, y: center.y - capture, width: capture * 2, height: capture * 2), display: true)
@@ -286,7 +291,7 @@ final class HorizonController {
     private func outward(from offset: CGVector) -> CGVector {
         let length = hypot(offset.dx, offset.dy)
         guard length > 1 else { return towardScreenCenter() }
-        let distance = Physics.influenceRadius(radius) * 0.85
+        let distance = Physics.ejectDistance(radius)
         return CGVector(dx: offset.dx / length * distance, dy: offset.dy / length * distance)
     }
 
@@ -295,7 +300,7 @@ final class HorizonController {
         let dx = frame.midX - center.x
         let dy = frame.midY - center.y
         let length = max(1, hypot(dx, dy))
-        let distance = Physics.influenceRadius(radius) * 0.85
+        let distance = Physics.ejectDistance(radius)
         return CGVector(dx: dx / length * distance, dy: dy / length * distance)
     }
 }

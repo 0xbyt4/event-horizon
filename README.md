@@ -2,9 +2,9 @@
 
 A small black hole for your Mac desktop. Drop files on it and they fall in. They go to the Trash.
 
-![A file falls into the hole, stretched and red-shifted](docs/falling.png)
+![The hole sweeps across the desktop, swallows the icons, then gives the last one back](docs/sweep.gif)
 
-*The image is a render of the app's own drawing code, mid-fall.*
+*The animation is rendered from the app's own drawing code, frame by frame. It is not a screen recording.*
 
 ## What it does
 
@@ -56,8 +56,10 @@ The hole draws only while something moves: a drag near the hole, a fall, or a br
 
 Measured on macOS 27.2 (Apple silicon):
 
-- Idle CPU: about 0%. The process used 10 ms of CPU time in 30 seconds.
-- Memory footprint: about 14 MB.
+- Idle CPU: 0%. The process CPU time did not change in 30 seconds.
+- Memory footprint: about 19 MB.
+
+The effects window grows with the hole, and the app frees the disk drawing buffer at rest. The window backing store is the largest cost, so the window stays as small as the animations allow.
 
 ## Requirements
 
@@ -93,6 +95,19 @@ Other targets:
 - `make clean`: removes build output.
 
 ## How it works
+
+### The look
+
+The hole follows the image of a real black hole seen from the side:
+
+- **Disk.** A thin, almost edge-on ring of hot gas. The inner edge is white-hot. The color changes to orange and dark red outward. The inner part turns faster than the outer part.
+- **Halo.** Gravity bends the light from the far side of the disk around the shadow. It shows as a thick arc over the top and a thin lip under the bottom.
+- **Photon ring.** A thin line of light at the edge of the black shadow.
+- **Doppler beaming.** The side that moves toward you is brighter and whiter. The other side is dimmer and redder.
+
+The disk is two textures, an inner and an outer ring, drawn once at startup. Each frame rotates and squashes them. A frame costs a few image draws.
+
+### Windows
 
 The app uses two transparent, borderless panels:
 
