@@ -47,6 +47,21 @@ final class TrashServiceTests: XCTestCase {
         XCTAssertTrue(service.items.isEmpty)
     }
 
+    func testForgetsItemsPutBackOutsideTheApp() throws {
+        let service = TrashService()
+        let kept = try service.moveToTrash(try makeFile("kept.txt"))
+        let file = try makeFile("put-back.txt")
+        let putBack = try service.moveToTrash(file)
+        leftovers.append(kept.trashedURL)
+
+        // Finder's Put Back moves the item out of the Trash without the app.
+        try FileManager.default.moveItem(at: putBack.trashedURL, to: file)
+
+        XCTAssertEqual(service.forgetItemsMissingFromTrash(), 1)
+        XCTAssertEqual(service.items.map(\.name), ["kept.txt"])
+        XCTAssertEqual(service.forgetItemsMissingFromTrash(), 0)
+    }
+
     func testBringBackIsLastInFirstOut() throws {
         let service = TrashService()
         let first = try service.moveToTrash(try makeFile("a.txt"))

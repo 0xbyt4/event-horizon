@@ -126,6 +126,7 @@ final class HorizonController {
     func holeDragBegan() {
         sweeping = true
         sweepItems = []
+        forgetMissingItems()
         guard DesktopItems.areVisible else {
             Log.sweep.notice("Sweep off: desktop icons are hidden")
             return
@@ -139,10 +140,8 @@ final class HorizonController {
             }
             switch result {
             case .success(let items):
-                self.sweepItems = items.filter { item in
-                    !self.trash.items.contains { $0.originalURL.standardizedFileURL == item.url.standardizedFileURL }
-                }
-                Log.sweep.notice("Finder returned \(items.count) desktop items, \(self.sweepItems.count) can be swept")
+                self.sweepItems = items
+                Log.sweep.notice("Finder returned \(items.count) desktop items")
                 self.sweepNearby()
             case .failure(.desktopNotAuthorized):
                 Log.sweep.error("No access to the Desktop folder")
@@ -269,6 +268,7 @@ final class HorizonController {
     }
 
     func bringBackLast() {
+        forgetMissingItems()
         do {
             let item = try trash.bringBackLast()
             let icon = NSWorkspace.shared.icon(forFile: item.originalURL.path(percentEncoded: false))
@@ -285,6 +285,14 @@ final class HorizonController {
             NSApp.activate()
             alert.runModal()
         }
+    }
+
+    /// Drops items the user restored or deleted outside the app, so the list and the hole size stay true.
+    func forgetMissingItems() {
+        let forgotten = trash.forgetItemsMissingFromTrash()
+        guard forgotten > 0 else { return }
+        Log.trash.notice("Forgot \(forgotten) items that are no longer in the Trash")
+        updateRadius()
     }
 
     func openTrash() {

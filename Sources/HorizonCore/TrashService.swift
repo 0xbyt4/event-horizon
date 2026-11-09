@@ -86,6 +86,15 @@ public final class TrashService {
         return item
     }
 
+    /// Forgets the items that are no longer in the Trash, for example after Put Back
+    /// in Finder or after the Trash was emptied. Returns how many items it forgot.
+    @discardableResult
+    public func forgetItemsMissingFromTrash() -> Int {
+        let before = items.count
+        items.removeAll { !fileManager.fileExists(atPath: $0.trashedURL.path(percentEncoded: false)) }
+        return before - items.count
+    }
+
     /// Stores the measured size of a folder that was moved to the Trash.
     public func setSize(_ size: Int64, forTrashedURL url: URL) {
         guard let index = items.firstIndex(where: { $0.trashedURL == url }) else { return }

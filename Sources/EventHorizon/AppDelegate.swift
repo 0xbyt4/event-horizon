@@ -28,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         guard let controller else { return }
+        controller.forgetMissingItems()
 
         let bringBack: NSMenuItem
         if let name = controller.lastItemName {
