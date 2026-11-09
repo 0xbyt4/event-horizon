@@ -140,3 +140,7 @@ scripts/bundle.sh        Builds the .app bundle
 ```
 
 The Trash tests use the real Trash. They create temporary files, move them to the Trash, and remove them after the test.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
