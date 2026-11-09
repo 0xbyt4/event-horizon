@@ -2,9 +2,7 @@
 
 A small black hole for your Mac desktop. Drop files on it and they fall in. They go to the Trash.
 
-![The hole sweeps across the desktop, swallows the icons, then gives the last one back](docs/sweep.gif)
-
-*The animation is rendered from the app's own drawing code, frame by frame. It is not a screen recording.*
+![The hole sweeps across the desktop, swallows the icons and grows](docs/sweep.gif)
 
 ## What it does
 
