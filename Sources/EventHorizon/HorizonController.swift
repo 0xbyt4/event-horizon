@@ -23,7 +23,7 @@ final class HorizonController {
     private var dragIsNear = false
     private var sweeping = false
     private var sweepItems: [DesktopItem] = []
-    private var shownAutomationHelp = false
+    private var shownPermissionHelp = false
 
     private static let centerKey = "holeCenter"
     /// Room for the hole and an ejected icon (48 pt) at the end of its flight.
@@ -126,20 +126,38 @@ final class HorizonController {
     func holeDragBegan() {
         sweeping = true
         sweepItems = []
-        guard DesktopItems.areVisible else { return }
+        guard DesktopItems.areVisible else {
+            Log.sweep.notice("Sweep off: desktop icons are hidden")
+            return
+        }
         Task { [weak self] in
             let result = await DesktopItems.fetch()
-            guard let self, self.sweeping else { return }
+            guard let self else { return }
+            guard self.sweeping else {
+                Log.sweep.notice("Finder lookup finished after the hole stopped moving")
+                return
+            }
             switch result {
             case .success(let items):
                 self.sweepItems = items.filter { item in
                     !self.trash.items.contains { $0.originalURL.standardizedFileURL == item.url.standardizedFileURL }
                 }
+                Log.sweep.notice("Finder returned \(items.count) desktop items, \(self.sweepItems.count) can be swept")
                 self.sweepNearby()
-            case .failure(.notAuthorized):
-                self.showAutomationHelp()
-            case .failure(.failed):
-                break
+            case .failure(.desktopNotAuthorized):
+                Log.sweep.error("No access to the Desktop folder")
+                self.showPermissionHelp(
+                    "Event Horizon cannot move desktop items",
+                    "To swallow icons as the hole moves, allow Event Horizon to access the Desktop folder in System Settings > Privacy & Security > Files & Folders."
+                )
+            case .failure(.finderNotAuthorized):
+                Log.sweep.error("Finder lookup not authorized (Automation permission)")
+                self.showPermissionHelp(
+                    "Event Horizon cannot see the desktop icons",
+                    "To swallow icons as the hole moves, allow Event Horizon to control Finder in System Settings > Privacy & Security > Automation."
+                )
+            case .failure(.failed(let message)):
+                Log.sweep.error("Finder lookup failed: \(message, privacy: .public)")
             }
         }
     }
@@ -155,15 +173,18 @@ final class HorizonController {
         let caught = DesktopSweep.captured(sweepItems, center: center, radius: radius)
         guard !caught.isEmpty else { return }
         sweepItems.removeAll { caught.contains($0) }
+        let names = caught.map(\.url.lastPathComponent).joined(separator: ", ")
+        Log.sweep.notice("Caught \(caught.count) items: \(names, privacy: .public)")
         _ = swallow(caught.map { (url: $0.url, point: $0.center) })
     }
 
-    private func showAutomationHelp() {
-        guard !shownAutomationHelp else { return }
-        shownAutomationHelp = true
+    /// Explains a missing permission once per run.
+    private func showPermissionHelp(_ title: String, _ text: String) {
+        guard !shownPermissionHelp else { return }
+        shownPermissionHelp = true
         let alert = NSAlert()
-        alert.messageText = "Event Horizon cannot see the desktop icons"
-        alert.informativeText = "To swallow icons as the hole moves, allow Event Horizon to control Finder in System Settings > Privacy & Security > Automation."
+        alert.messageText = title
+        alert.informativeText = text
         NSApp.activate()
         alert.runModal()
     }
@@ -236,6 +257,7 @@ final class HorizonController {
                 swallowed += 1
                 if item.isDirectory { measure(item) }
             } catch {
+                Log.trash.error("Could not move \(url.lastPathComponent, privacy: .public) to the Trash: \(String(describing: error), privacy: .public)")
                 failed = true
                 holeView.addEject(image: icon, toward: outward(from: offset))
             }

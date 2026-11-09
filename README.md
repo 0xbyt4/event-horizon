@@ -46,7 +46,9 @@ The menu has these items:
 Sweeping needs two permissions. macOS asks for them the first time you sweep:
 
 - **Automation > Finder.** Only Finder knows where the desktop icons are. The app asks Finder once, when the hole starts to move.
-- **Desktop folder.** The app needs access to move the swept items to the Trash.
+- **Desktop folder.** The app needs access to move the swept items to the Trash. It asks when the hole starts to move, before it swallows anything.
+
+The build script signs the app ad hoc. macOS ties these permissions to the exact build, so it asks again after each rebuild.
 
 Dropping files on the hole needs no permission.
 
