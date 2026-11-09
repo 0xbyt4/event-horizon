@@ -305,7 +305,7 @@ final class HorizonController {
     }
 
     private func updateRadius() {
-        radius = Physics.radius(forMass: trash.totalSize)
+        radius = Physics.radius(items: trash.items.count, bytes: trash.totalSize)
         holeView.holeRadius = radius
         layout()
     }

@@ -3,17 +3,22 @@ import HorizonCore
 import XCTest
 
 final class PhysicsTests: XCTestCase {
-    func testRadiusGrowsWithMassAndStopsAtMaximum() {
-        let empty = Physics.radius(forMass: 0)
-        let small = Physics.radius(forMass: 5_000_000)
-        let large = Physics.radius(forMass: 5_000_000_000)
-        let huge = Physics.radius(forMass: 500_000_000_000_000)
+    func testRadiusGrowsWithEachItemAndStopsAtMaximum() {
+        let empty = Physics.radius(items: 0, bytes: 0)
+        let one = Physics.radius(items: 1, bytes: 0)
+        let seven = Physics.radius(items: 7, bytes: 0)
 
         XCTAssertEqual(empty, Physics.baseRadius)
-        XCTAssertGreaterThan(small, empty)
-        XCTAssertGreaterThan(large, small)
-        XCTAssertEqual(huge, Physics.maxRadius, accuracy: 0.001)
-        XCTAssertEqual(Physics.radius(forMass: -10), Physics.baseRadius)
+        XCTAssertEqual(one, Physics.baseRadius * 1.08, accuracy: 0.001)
+        XCTAssertEqual(seven, Physics.baseRadius * 1.24, accuracy: 0.001)
+        XCTAssertEqual(Physics.radius(items: 100_000, bytes: 500_000_000_000_000), Physics.maxRadius, accuracy: 0.001)
+        XCTAssertEqual(Physics.radius(items: -3, bytes: -10), Physics.baseRadius)
+    }
+
+    func testBiggerItemsGrowTheHoleMore() {
+        let text = Physics.radius(items: 1, bytes: 4_000)
+        let archive = Physics.radius(items: 1, bytes: 1_400_000_000)
+        XCTAssertGreaterThan(archive, text)
     }
 
     func testPullIsZeroOutsideInfluenceAndOneAtCenter() {

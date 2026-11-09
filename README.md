@@ -12,7 +12,7 @@ A small black hole for your Mac desktop. Drop files on it and they fall in. They
 - Drag files from Finder near the hole. The disk spins faster and a dashed ring shows the capture area.
 - Drop the files on the hole. Each file spirals in, stretches and turns red, then disappears.
 - Drag the hole across the desktop. It swallows the desktop icons it passes over. Hold Option to move the hole without swallowing.
-- The hole grows with the total size of the items it holds.
+- The hole grows a little with each item it swallows, and more for big items. It shrinks again when you bring an item back.
 - Double-click the hole to bring back the last item. The item flies out of the hole to its original folder.
 
 ## Safety

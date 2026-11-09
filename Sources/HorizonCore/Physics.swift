@@ -7,14 +7,22 @@ public enum Physics {
     /// Radius of the event horizon when the hole has no mass.
     public static let baseRadius: CGFloat = 22
 
-    /// The largest radius `radius(forMass:)` can return.
-    public static let maxRadius: CGFloat = baseRadius * (1 + 0.16 * 4)
+    /// The largest growth over `baseRadius`, as a fraction.
+    private static let maxGrowth: CGFloat = 0.8
 
-    /// The hole grows with the total size of the items it holds, on a log scale.
-    public static func radius(forMass bytes: Int64) -> CGFloat {
+    /// The largest radius `radius(items:bytes:)` can return.
+    public static let maxRadius: CGFloat = baseRadius * (1 + maxGrowth)
+
+    /// The hole grows with each item it holds and with their total size.
+    ///
+    /// Each item adds a visible step, and the steps get smaller as the count grows:
+    /// 1 item adds 8 %, 7 items add 24 %, 31 items add 40 %. Size adds up to 40 % more
+    /// on a log scale, so a 1 GB archive weighs more than a small text file.
+    public static func radius(items: Int, bytes: Int64) -> CGFloat {
+        let countGrowth = 0.08 * log2(1 + Double(max(0, items)))
         let megabytes = Double(max(0, bytes)) / 1_000_000
-        let growth = min(4, log10(1 + megabytes))
-        return baseRadius * (1 + 0.16 * CGFloat(growth))
+        let sizeGrowth = 0.1 * min(4, log10(1 + megabytes))
+        return baseRadius * (1 + min(maxGrowth, CGFloat(countGrowth + sizeGrowth)))
     }
 
     /// Items released inside this distance from the center fall in.
